@@ -4,7 +4,8 @@
 #include <IPAddress.h>
 
 //#define OTA_HANDLER
-#define MODE_AP // phone connects directly to ESP
+
+#define MODE_AP // phone connects directly to ESP, if not define: client (WIFI_STA).
 
 #define PROTOCOL_TCP
 
@@ -16,8 +17,6 @@ bool debug = true;
 const char *ssid = "COM_AP";  // You will connect your phone to this Access Point
 const char *pw = ""; // and this is the password
 IPAddress ip(192, 168, 4, 1); // From RoboRemo app, connect to this IP
-IPAddress netmask(255, 255, 255, 0);
-
 // You must connect the phone to this AP, then:
 // menu -> connect -> Internet(TCP) -> 192.168.4.1:8880  for UART0
 //                                  -> 192.168.4.1:8881  for UART1

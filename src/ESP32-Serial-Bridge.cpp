@@ -25,16 +25,18 @@ HardwareSerial Serial_one(1);
 HardwareSerial Serial_two(2);
 HardwareSerial *COM[NUM_COM] = {&Serial, &Serial_one, &Serial_two};
 
-#define MAX_NMEA_CLIENTS 4
+#define MAX_NMEA_CLIENTS 2
 #ifdef PROTOCOL_TCP
 
 #include <WiFiClient.h>
+#include <ESPmDNS.h>
 
 WiFiServer server_0(SERIAL0_TCP_PORT);
 WiFiServer server_1(SERIAL1_TCP_PORT);
 WiFiServer server_2(SERIAL2_TCP_PORT);
 WiFiServer *server[NUM_COM] = {&server_0, &server_1, &server_2};
 WiFiClient TCPClient[NUM_COM][MAX_NMEA_CLIENTS];
+
 #endif
 
 
@@ -62,28 +64,32 @@ void setup() {
     WiFi.mode(WIFI_AP);
     // todo -- WiFi.softAPConfig(ip, ip, netmask); // configure ip address for softAP
     WiFi.softAP(ssid, pw);
-    WiFi.setTxPower(WIFI_POWER_19_5dBm);
-    ESP_ERROR_CHECK(esp_wifi_set_bandwidth(ESP_IF_WIFI_AP, WIFI_BW_HT20));
+    if (MDNS.begin("COM_AP")) {
+        Serial.print("MDNS responder started");
+    }
     if (debug) {
         Serial.print("AP IP address: ");
         Serial.println(WiFi.softAPIP());
     }
 #else
-    if(debug) COM[DEBUG_COM]->println("Open ESP Station mode");
-   // STATION mode (ESP connects to router and gets an IP)
-   // Assuming phone is also connected to that router
-   // from RoboRemo you must connect to the IP of the ESP
-   WiFi.mode(WIFI_STA);
-   WiFi.begin(ssid, pw);
-   if(debug) COM[DEBUG_COM]->print("try to Connect to Wireless network: ");
-   if(debug) COM[DEBUG_COM]->println(ssid);
-   while (WiFi.status() != WL_CONNECTED) {
-     delay(500);
-     if(debug) COM[DEBUG_COM]->print(".");
-   }
-   if(debug) COM[DEBUG_COM]->println("\nWiFi connected");
+    if (debug) COM[DEBUG_COM]->println("Open ESP Station mode");
+    // STATION mode (ESP connects to router and gets an IP)
+    // Assuming phone is also connected to that router
+    // from RoboRemo you must connect to the IP of the ESP
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, pw);
+    if (debug) COM[DEBUG_COM]->print("try to Connect to Wireless network: ");
+    if (debug) COM[DEBUG_COM]->println(ssid);
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        if (debug) COM[DEBUG_COM]->print(".");
+    }
+    if (debug) COM[DEBUG_COM]->println("\nWiFi connected");
 
 #endif
+//    WiFi.setTxPower(WIFI_POWER_19_5dBm);
+//    ESP_ERROR_CHECK(esp_wifi_set_bandwidth(ESP_IF_WIFI_AP, WIFI_BW_HT20));
+
 #ifdef BLUETOOTH
     if(debug) COM[DEBUG_COM]->println("Open Bluetooth Server");
     SerialBT.begin(ssid); //Bluetooth device name
@@ -125,14 +131,22 @@ void setup() {
     if (debug) COM[DEBUG_COM]->println("Starting TCP Server 1");
     server[0]->begin(); // start TCP server
     server[0]->setNoDelay(true);
+
     COM[1]->println("Starting TCP Server 2");
     if (debug) COM[DEBUG_COM]->println("Starting TCP Server 2");
     server[1]->begin(); // start TCP server
     server[1]->setNoDelay(true);
+
     COM[2]->println("Starting TCP Server 3");
     if (debug) COM[DEBUG_COM]->println("Starting TCP Server 3");
     server[2]->begin(); // start TCP server
     server[2]->setNoDelay(true);
+#endif
+
+#ifndef MODE_AP
+    TCPClient[0]->connect(ip, SERIAL0_TCP_PORT);
+    TCPClient[1]->connect(ip, SERIAL1_TCP_PORT);
+    TCPClient[2]->connect(ip, SERIAL2_TCP_PORT);
 #endif
 }
 
@@ -162,7 +176,9 @@ void loop() {
             for (byte i = 0; i < MAX_NMEA_CLIENTS; i++) {
                 //find free/disconnected spot
                 if (!TCPClient[num][i] || !TCPClient[num][i].connected()) {
-                    if (TCPClient[num][i]) TCPClient[num][i].stop();
+                    if (TCPClient[num][i]) {
+                        TCPClient[num][i].stop();
+                    }
                     TCPClient[num][i] = server[num]->available();
                     if (debug) COM[DEBUG_COM]->print("New client for COM");
                     if (debug) COM[DEBUG_COM]->print(num);
@@ -182,7 +198,7 @@ void loop() {
             for (byte cln = 0; cln < MAX_NMEA_CLIENTS; cln++) {
                 if (TCPClient[num][cln]) {
                     while (TCPClient[num][cln].available()) {
-                        buf1[num][i1[num]] = TCPClient[num][cln].read(); // read char from client (LK8000 app)
+                        buf1[num][i1[num]] = TCPClient[num][cln].read(); // read char from client
                         if (i1[num] < bufferSize - 1) i1[num]++;
                     }
                     COM[num]->write(buf1[num], i1[num]); // now send to UART(num):
