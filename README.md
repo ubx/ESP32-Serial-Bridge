@@ -4,8 +4,8 @@ Transparent WiFi (TCP) to all three UART Bridge, supports both AP and STATION Wi
 I made this project in order to connect Flight equipment devices devices like (Radio, Vario FLARM), to a Flight Computer (Kobo, Smartphones etc.),  but it is not limited to that. You can use it wherever you want, but on your own risk. Read license file for more details.
 Accesspoint                                                    
 IPAdress: 192.168.4.1                                           
-AP SSID: LK8000                                                   
-AP Password: Flightcomputer                                       
+AP SSID: COM_AP                                                   
+AP Password: 1234567890                                       
 Used Ports:                                                                                                          
 192.168.4.1:8880  <-> COM0                                     
 192.168.4.1:8881  <-> COM1                                     

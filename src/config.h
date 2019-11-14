@@ -15,7 +15,7 @@ bool debug = true;
 
 // For AP mode:
 const char *ssid = "COM_AP";  // You will connect your phone to this Access Point
-const char *pw = ""; // and this is the password
+const char *pw = "1234567890"; // and this is the password
 IPAddress ip(192, 168, 4, 1); // From RoboRemo app, connect to this IP
 // You must connect the phone to this AP, then:
 // menu -> connect -> Internet(TCP) -> 192.168.4.1:8880  for UART0
