@@ -141,12 +141,12 @@ void setup() {
     if (debug) COM[DEBUG_COM]->println("Starting TCP Server 3");
     server[2]->begin(); // start TCP server
     server[2]->setNoDelay(true);
-#endif
 
 #ifndef MODE_AP
     TCPClient[0]->connect(ip, SERIAL0_TCP_PORT);
     TCPClient[1]->connect(ip, SERIAL1_TCP_PORT);
     TCPClient[2]->connect(ip, SERIAL2_TCP_PORT);
+#endif
 #endif
 }
 
